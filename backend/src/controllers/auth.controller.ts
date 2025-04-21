@@ -6,29 +6,41 @@ import {
   verifyRefreshToken
 } from '../utils/jwt';
 import prisma from '../../prisma/client';
+import dotenv from 'dotenv';
 
+dotenv.config();
 
-
-export const register = async (req: Request, res: Response): Promise<Response|undefined> => {
+export const register = async (req: Request, res: Response): Promise<any> => {
   try {
-        
+    console.log(req.body);
     const { name, email, password } = req.body;
-    const existing = await prisma.user.findUnique({ where: { email } });
-      
+    console.log('Before checking existing user');
+    
+    const existing = await prisma.user.findFirst({ where: { email } });
+    console.log('existing user', existing);
+    
     if (existing) return res.status(400).json({ message: 'Email already in use' });
-      
+    console.log('Before hashing password', password);
+    console.log('salt value', 10);
+    
     const hashedPassword = await bcrypt.hash(password, 10);
+    console.log('hashed password', hashedPassword);
+    
     const user = await prisma.user.create({
       data: { name, email, password: hashedPassword },
     });
-      
+    console.log('created user', user);
+    
     res.status(201).json({ message: 'User registered', userId: user.id });
   } catch (error) {
-        
+    console.log('Error while registering the user', error);
+    res.send(500).json({
+      message: 'Internal server error'
+    })
   }
 };
 
-export const login = async (req: Request, res: Response): Promise<Response|undefined> => {
+export const login = async (req: Request, res: Response): Promise<any> => {
   try {
     const { email, password } = req.body;
     console.log("email and password are", email , password);
@@ -54,11 +66,13 @@ export const login = async (req: Request, res: Response): Promise<Response|undef
     });
         
   } catch (error) {
-        
+    res.send(500).json({
+      message: 'Internal server error' + error
+    })
   }
 };
 
-export const refresh = async (req: Request, res: Response) : Promise<Response | undefined> => {
+export const refresh = async (req: Request, res: Response) : Promise<any> => {
 
   try {
         
@@ -73,8 +87,8 @@ export const refresh = async (req: Request, res: Response) : Promise<Response | 
         return res.status(403).json({ message: 'Invalid refresh token' });
       }
       
-      const newAccessToken = generateAccessToken(user.id);
-      const newRefreshToken = generateRefreshToken(user.id);
+      const newAccessToken = generateAccessToken(user.id, user.role);
+      const newRefreshToken = generateRefreshToken(user.id, user.role);
       
       await prisma.user.update({
         where: { id: user.id },
@@ -82,11 +96,15 @@ export const refresh = async (req: Request, res: Response) : Promise<Response | 
       });
       
       res.status(200).json({ accessToken: newAccessToken, refreshToken: newRefreshToken });
-    } catch (err) {
+    } catch (error) {
+      console.log(error);
       return res.status(403).json({ message: 'Invalid or expired refresh token' });
     }
   } catch (error) {
-        
+
+    res.send(500).json({
+      message: 'Internal server error' + error
+    })
   }
 };
 
@@ -100,7 +118,9 @@ export const logout = async (req: Request, res: Response) => {
     });
     res.status(200).json({ message: 'Logged out successfully' });
   } catch (error) {
-        
+    res.send(500).json({
+      message: 'Internal server error' + error
+    })
   }
 };
 

@@ -1,9 +1,9 @@
 // eslint.config.js
-import eslintPluginTs from '@typescript-eslint/eslint-plugin';
-import parserTs from '@typescript-eslint/parser';
+const eslintPluginTs = require('@typescript-eslint/eslint-plugin');
+const parserTs = require('@typescript-eslint/parser');
 
 /** @type {import("eslint").Linter.FlatConfig[]} */
-export default [
+module.exports = [
   {
     ignores: ['node_modules', 'dist'],
   },
@@ -12,7 +12,7 @@ export default [
     languageOptions: {
       parser: parserTs,
       parserOptions: {
-        ecmaVersion: 2020,
+        ecmaVersion: 'latest',
         sourceType: 'module',
       },
     },

@@ -1,6 +1,5 @@
 import express from 'express';
 import { authApiCheck, login, logout, refresh, register } from '../controllers/auth.controller';
-import { getAllUsers } from '../controllers/user.controller';
 
 const router = express.Router();
 
