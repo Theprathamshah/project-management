@@ -67,6 +67,12 @@ export const getUserByEmail = async(req: Request, res: Response): Promise<any> =
     const email = req.params.email;
     const user = await prisma.user.findFirst({where: {
       email
+    }, select: {
+      id: true,
+      name: true,
+      email: true,
+      role: true,
+      refreshToken: true
     }});
     return res.status(200).json({data: user});
   } catch (error) {
